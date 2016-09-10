@@ -3,7 +3,7 @@
 % Server module
 
 -module(rudy).
--export([init/1, handler/1, request/1, reply/1, start/1, stop/0]).
+-export([init/1, handler/1, request/1, reply/1, runserver/1, stop/0]).
 
 init(Port) ->
 	Opt = [list, {active, false}, {reuseaddr, true}],
@@ -51,7 +51,7 @@ reply({{get, URI, _}, _, _}) ->
 
 % RUNSERVER
 
-start(Port) ->
+runserver(Port) ->
 	register(rudy, spawn(fun() -> init(Port) end)).
 
 stop() ->
