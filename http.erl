@@ -1,3 +1,8 @@
+% DS
+% Rudy web server
+% Http parsing module
+
+
 -module(http).
 -export([parse_request/1, ok/1, get/1]).
 
