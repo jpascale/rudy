@@ -3,7 +3,7 @@
 % Server module
 
 -module(rudy).
--export([init/1, handler/1, request/1, reply/1, runserver/1, stop/0]).
+-export([init/1, handler/1, request/1, serve/1, deliver/1, runserver/1, stop/0, action_decide/1]).
 
 init(Port) ->
 	Opt = [list, {active, false}, {reuseaddr, true}],
@@ -35,8 +35,13 @@ request(Socket) ->
 
 	case Recv of
 		{ok, Str} ->
-			Request = http:parse_request(Str),
-			Response = reply(Request),
+			{{get, URI, _}, _, _} = Request = http:parse_request(Str),
+			case action_decide(URI) of
+				{deliver, Filename} ->
+					Response = deliver(Filename);
+				{serve, Path} ->
+					Response = serve(Request)
+			end, 
 			gen_tcp:send(Socket, Response);
 			%timer:sleep(10000);
 
@@ -47,12 +52,29 @@ request(Socket) ->
 	gen_tcp:close(Socket).
 
 
-reply({{get, "/secret.txt", _}, _, _}) ->
-	http:ok("Secret was requested");
+deliver(Filename) ->
+	http:ok("Secret was requested").
 
 %Generic reply
-reply({{get, URI, _}, _, _}) ->
+serve( {{get, URI, _}, _, _}) ->
 	http:ok("Requested path is " ++ URI).
+
+
+action_decide(URI) ->
+	case string:rstr(URI, "/download?file=") of
+		1 ->
+			Filename = string:right(URI, string:len(URI) - 15),
+			case file:open(Filename, [read]) of
+				 {ok, IoDevice} ->
+				 	file:close(Filename),
+				 	{deliver, Filename};
+				 {error, Reason} ->
+				 	{serve, URI}
+			end;
+		true ->
+			{serve, URI}
+	end.
+
 
 % RUNSERVER
 
