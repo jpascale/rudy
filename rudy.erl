@@ -38,6 +38,7 @@ request(Socket) ->
 			Request = http:parse_request(Str),
 			Response = reply(Request),
 			gen_tcp:send(Socket, Response);
+			%timer:sleep(10000);
 
 		{error, Error} ->
 			io:format("rudy: error: ~w~n", [Error])
@@ -45,9 +46,13 @@ request(Socket) ->
 
 	gen_tcp:close(Socket).
 
+
+reply({{get, "/secret.txt", _}, _, _}) ->
+	http:ok("Secret was requested");
+
+%Generic reply
 reply({{get, URI, _}, _, _}) ->
 	http:ok("Requested path is " ++ URI).
-
 
 % RUNSERVER
 
