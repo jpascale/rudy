@@ -39,7 +39,7 @@ request(Socket) ->
 			case action_decide(URI) of
 				{deliver, Filename} ->
 					Response = deliver(Filename);
-				{serve, Path} ->
+				{serve, _} ->
 					Response = serve(Request)
 			end, 
 			gen_tcp:send(Socket, Response);
@@ -53,7 +53,7 @@ request(Socket) ->
 
 
 deliver(Filename) ->
-	http:ok("Secret was requested").
+	http:deliver_file(Filename).
 
 %Generic reply
 serve( {{get, URI, _}, _, _}) ->
@@ -66,7 +66,7 @@ action_decide(URI) ->
 			Filename = string:right(URI, string:len(URI) - 15),
 			case file:open(Filename, [read]) of
 				 {ok, IoDevice} ->
-				 	file:close(Filename),
+				 	file:close(IoDevice),
 				 	{deliver, Filename};
 				 {error, Reason} ->
 				 	{serve, URI}

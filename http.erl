@@ -4,7 +4,7 @@
 
 
 -module(http).
--export([parse_request/1, ok/1, get/1]).
+-export([parse_request/1, ok/1, get/1, deliver_file/1]).
 
 -define(CR, 13).
 -define(LF, 10).
@@ -72,10 +72,29 @@ message_body(R) ->
 %%%%%%%%%%%%%%%%%%%%%%
 
 ok(Body) ->
-"HTTP/1.1 200 OK\r\n" ++ "\r\n" ++ Body.
+	"HTTP/1.1 200 Download baby\r\n" ++ "\r\n" ++ Body.
+
+deliver_file(Filename) ->
+		
+    {ok, IoService} = file:open(Filename, [read]),
+    Data = get_all_lines(IoService, []),
+    Length = string:len(Data),
+
+	"HTTP/1.0 200 OK\r\n" ++
+	"Server: Rudy/1.0\r\n" ++
+	"Content-type: application/octet-stream\r\n" ++
+	"Content-Disposition: attachment; filename=\"" ++ Filename ++ "\"\r\n" ++
+	"Content-Length: " ++ integer_to_list(Length + 141 + string:len(integer_to_list(Length)) + string:len(Filename)) ++ "\r\n\r\n" ++
+	Data.
+
+get_all_lines(Device, Accum) ->
+    case io:get_line(Device, "") of
+        eof  -> file:close(Device), Accum;
+        Line -> get_all_lines(Device, Accum ++ [Line])
+    end.
 
 get(URI) ->
-"GET " ++ URI ++ " HTTP/1.1\r\n" ++ "\r\n".
+	"GET " ++ URI ++ " HTTP/1.1\r\n" ++ "\r\n".
 
 
 
