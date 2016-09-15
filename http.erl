@@ -71,16 +71,48 @@ message_body(R) ->
 %		Reply	 	 %
 %%%%%%%%%%%%%%%%%%%%%%
 
-ok(Body) ->
-	"HTTP/1.1 200 Download baby\r\n" ++ "\r\n" ++ Body.
+ok(URI) ->
+	HasQuery = string:rstr(URI, "?"),
+
+	if not HasQuery == 0 -> 
+			[Filename, Query] = string:tokens("?"),
+			case file:open(string:right(Filename, string:len(Filename) - 1), [read]) of
+				{ok, IoService} ->
+					file:close(IoService),
+					render(Filename);
+				{error, _} ->
+					io:format("false - error", []),
+					"HTTP/1.1 200 OK\r\n" ++ "\r\n" ++ "Requested path " ++ URI
+			end;
+		true ->
+			case file:open(string:right(URI, string:len(URI)-1), [read]) of
+				{ok, IoService} ->
+					file:close(IoService),
+					render(URI);
+				{error, _} ->
+					"HTTP/1.1 200 OK\r\n" ++ "\r\n" ++ "Requested path " ++ URI
+			end
+	end.
+
+
+render(Filename) ->
+	{ok, IoService} = file:open(string:right(Filename, string:len(Filename)-1), [read]),
+    Data = get_all_lines(IoService, []),
+    file:close(IoService),
+
+	"HTTP/1.0 200 OK" ++
+	"Server: Rudy/1.0\r\n" ++
+	"Content-Type: text/html; charset=utf-8\r\n\r\n" ++
+	Data.
 
 deliver_file(Filename) ->
 		
     {ok, IoService} = file:open(Filename, [read]),
     Data = get_all_lines(IoService, []),
     Length = string:len(Data),
+    file:close(IoService),
 
-	"HTTP/1.0 200 OK\r\n" ++
+	"HTTP/1.0 200 Download baby" ++
 	"Server: Rudy/1.0\r\n" ++
 	"Content-type: application/octet-stream\r\n" ++
 	"Content-Disposition: attachment; filename=\"" ++ Filename ++ "\"\r\n" ++

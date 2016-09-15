@@ -1,9 +1,9 @@
 -module(test).
--export([bench/2]).
+-export([bench/3]).
 
-bench(Host, Port) ->
+bench(Host, Port, Run) ->
 	Start = erlang:system_time(micro_seconds),
-	run(100, Host, Port),
+	run(Run, Host, Port),
 	Finish = erlang:system_time(micro_seconds),
 	Finish - Start.
 
@@ -18,7 +18,7 @@ run(N, Host, Port) ->
 request(Host, Port) ->
 	Opt = [list, {active, false}, {reuseaddr, true}],
 	{ok, Server} = gen_tcp:connect(Host, Port, Opt),
-	gen_tcp:send(Server, http:get("foo")),
+	gen_tcp:send(Server, http:get("/a.html")),
 	Recv = gen_tcp:recv(Server, 0),
 
 	case Recv of

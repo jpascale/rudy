@@ -55,9 +55,8 @@ request(Socket) ->
 deliver(Filename) ->
 	http:deliver_file(Filename).
 
-%Generic reply
 serve( {{get, URI, _}, _, _}) ->
-	http:ok("Requested path is " ++ URI).
+	http:ok(URI).
 
 
 action_decide(URI) ->
@@ -71,7 +70,7 @@ action_decide(URI) ->
 				 {error, Reason} ->
 				 	{serve, URI}
 			end;
-		true ->
+		_ ->
 			{serve, URI}
 	end.
 
