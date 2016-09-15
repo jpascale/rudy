@@ -73,18 +73,18 @@ message_body(R) ->
 
 ok(URI) ->
 	HasQuery = string:rstr(URI, "?"),
-
-	if not HasQuery == 0 -> 
-			[Filename, Query] = string:tokens("?"),
+	if not (HasQuery == 0) -> 
+			io:format("Has query", []),
+			[Filename, Query] = string:tokens(URI, "?"),
 			case file:open(string:right(Filename, string:len(Filename) - 1), [read]) of
 				{ok, IoService} ->
 					file:close(IoService),
 					render(Filename);
 				{error, _} ->
-					io:format("false - error", []),
+					io:format("AAAAAAA", []),
 					"HTTP/1.1 200 OK\r\n" ++ "\r\n" ++ "Requested path " ++ URI
 			end;
-		true ->
+		true -> 
 			case file:open(string:right(URI, string:len(URI)-1), [read]) of
 				{ok, IoService} ->
 					file:close(IoService),
